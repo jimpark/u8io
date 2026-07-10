@@ -11,11 +11,14 @@
 
 #include <version>
 
-#ifndef __cpp_lib_format
+// libc++ 17/18 provide everything u8io needs from <format> but withhold
+// __cpp_lib_format until libc++ 19, so accept them by version as well.
+#if !defined(__cpp_lib_format) && \
+    !(defined(_LIBCPP_VERSION) && _LIBCPP_VERSION >= 170000)
 #error "u8io requires C++23 <format>"
 #endif
 #ifndef __cpp_lib_expected
-#error "u8io requires C++23 <expected>"
+#error "u8io requires C++23 <expected> (note: libstdc++ disables <expected> for Clang < 19)"
 #endif
 
 namespace u8io::detail {
