@@ -44,7 +44,10 @@ re-runs the standard library's own checker against the mapped argument types.
 ## Requirements and ground rules
 
 - **C++23** with `<format>` and `<expected>` (MSVC 19.37+, GCC 14+,
-  Clang/libc++ 18+, Apple Clang 16+).
+  Clang/libc++ 18+, Apple Clang 16+). Note: Clang 18 paired with *libstdc++*
+  does not work — libstdc++ disables `std::expected` for Clang older than 19
+  (`__cpp_concepts` feature gate); use Clang 19+, or libc++ via
+  `-stdlib=libc++`.
 - **The ordinary literal encoding must be UTF-8.** Enforced by
   `static_assert`; on MSVC compile with `/utf-8` (the CMake target adds it
   automatically). This is what makes `char8_t` ↔ `char` reinterpretation

@@ -17,17 +17,25 @@ jobs:
           - name: linux-gcc
             os: ubuntu-24.04
             cxx: g++-14
-          - name: linux-clang
+          # Clang needs libc++ here: libstdc++ disables <expected> for
+          # Clang < 19 (__cpp_concepts feature gate).
+          - name: linux-clang-libc++
             os: ubuntu-24.04
             cxx: clang++-18
+            cxxflags: -stdlib=libc++
+            setup: sudo apt-get update && sudo apt-get install -y libc++-18-dev libc++abi-18-dev
     runs-on: ${{ matrix.os }}
     name: ${{ matrix.name }}
     steps:
       - uses: actions/checkout@v4
+      - name: Install toolchain
+        if: matrix.setup
+        run: ${{ matrix.setup }}
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
         env:
           CXX: ${{ matrix.cxx }}
+          CXXFLAGS: ${{ matrix.cxxflags }}
       - name: Build
         run: cmake --build build --config Release
       - name: Test
