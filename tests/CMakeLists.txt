@@ -1,0 +1,17 @@
+add_executable(u8io_tests
+    test_main.cpp
+    test_cast.cpp
+    test_format.cpp
+    test_error.cpp
+    test_print.cpp
+    test_io.cpp)
+
+target_link_libraries(u8io_tests PRIVATE u8io::u8io)
+
+if(MSVC)
+    target_compile_options(u8io_tests PRIVATE /W4 /permissive-)
+else()
+    target_compile_options(u8io_tests PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+add_test(NAME u8io_tests COMMAND u8io_tests)
