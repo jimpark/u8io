@@ -100,3 +100,7 @@ cmake -B build && cmake --build build && ctest --test-dir build
   on Windows it may not be UTF-8 (standard categories emit ASCII).
 - No grapheme/normalization/width awareness — that is ICU's job. Format
   width/precision count code units, exactly as `std::format` does for `char`.
+
+## License
+
+[MIT](LICENSE).
