@@ -67,7 +67,7 @@ re-runs the standard library's own checker against the mapped argument types.
 | `u8io/io.hpp` | `write_to(ostream, …)`, `read_file`, `write_file`, formattable `std::filesystem::path` |
 | `u8io/text.hpp` | `code_points(u8string_view)` — a forward range of `char32_t` scalar values (ill-formed input yields U+FFFD) |
 | `u8io/ascii.hpp` | `constexpr`, locale-free ASCII classification and case conversion for `char8_t` (`is_alpha`, `is_digit`, `to_lower`, …) |
-| `u8io/charconv.hpp` | `to_chars` / `from_chars` for `char8_t*` buffers and `u8string_view` input |
+| `u8io/charconv.hpp` | `to_chars` / `from_chars` for `char8_t*` buffers and `u8string_view` input; `parse<T>` → `expected<T, error>` for whole-string numbers |
 | `u8io/hash.hpp` | `string_hash` (transparent), `u8string_map<T>`, `u8string_set` — heterogeneous lookup without temporary keys |
 
 Formatting accepts `u8string`, `u8string_view`, `u8` literals, and lone

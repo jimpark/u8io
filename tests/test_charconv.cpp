@@ -66,3 +66,42 @@ TEST_CASE("from_chars failure modes") {
     CHECK(u8io::from_chars(u8"99999999999999999999"sv, value).ec ==
           std::errc::result_out_of_range);
 }
+
+TEST_CASE("parse succeeds on whole-string numbers") {
+    CHECK(u8io::parse<int>(u8"42"sv).value() == 42);
+    CHECK(u8io::parse<int>(u8"-17"sv).value() == -17);
+    CHECK(u8io::parse<unsigned>(u8"ff"sv, 16).value() == 255u);
+#ifdef __cpp_lib_to_chars
+    CHECK(u8io::parse<double>(u8"6.25e-2"sv).value() == 0.0625);
+    CHECK(u8io::parse<double>(u8"2.5"sv, std::chars_format::fixed).value() ==
+          2.5);
+#endif
+}
+
+TEST_CASE("parse rejects non-numbers, junk, and overflow") {
+    const auto bad = u8io::parse<int>(u8"trois"sv);
+    CHECK(!bad.has_value());
+    CHECK(bad.error().full_message() == u8"expected a number, got \"trois\"");
+
+    const auto junk = u8io::parse<int>(u8"42 pommes"sv);
+    CHECK(!junk.has_value());
+    CHECK(junk.error().full_message() ==
+          u8"trailing characters after number in \"42 pommes\"");
+
+    // As strict as from_chars: no whitespace skipping, empty is an error.
+    CHECK(!u8io::parse<int>(u8" 42"sv).has_value());
+    CHECK(!u8io::parse<int>(u8""sv).has_value());
+    CHECK(!u8io::parse<unsigned>(u8"-1"sv).has_value());
+
+    const auto big = u8io::parse<int>(u8"99999999999999999999"sv);
+    CHECK(!big.has_value());
+    CHECK(big.error().full_message().starts_with(u8"number out of range"));
+}
+
+TEST_CASE("parse errors point at the caller, and format through expected") {
+    const auto bad = u8io::parse<int>(u8"nope"sv);
+    CHECK(std::string_view(bad.error().location().file_name())
+              .ends_with("test_charconv.cpp"));
+    CHECK(u8io::format(u8"{}", bad) ==
+          u8"unexpected(expected a number, got \"nope\")");
+}

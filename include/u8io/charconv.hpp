@@ -12,12 +12,19 @@
 // Capabilities exactly track the underlying standard library. Notably,
 // libc++ before 20 has no floating-point from_chars (the overloads are
 // declared deleted); check __cpp_lib_to_chars if you need it portably.
+//
+// parse<T>() sits above from_chars and ties into the error layer: the whole
+// view must be one number, failures come back as std::expected<T, error>
+// pointing at the call site.
 
 #include <charconv>
+#include <expected>
+#include <source_location>
 #include <string_view>
 #include <system_error>
 
 #include "config.hpp"
+#include "error.hpp"
 
 namespace u8io {
 
@@ -62,6 +69,58 @@ template <class T, class... Args>
                                                   T& value, Args... args) {
     return u8io::from_chars(text.data(), text.data() + text.size(), value,
                             args...);
+}
+
+namespace detail {
+
+template <class T, class... Args>
+[[nodiscard]] std::expected<T, error> parse_impl(std::u8string_view text,
+                                                 std::source_location loc,
+                                                 Args... args) {
+    T value{};
+    const auto r = u8io::from_chars(text, value, args...);
+    if (r.ec == std::errc::result_out_of_range) {
+        return std::unexpected(
+            error(u8io::format(u8"number out of range: \"{}\"", text), loc));
+    }
+    if (r.ec != std::errc{}) {
+        return std::unexpected(
+            error(u8io::format(u8"expected a number, got \"{}\"", text), loc));
+    }
+    if (r.ptr != text.data() + text.size()) {
+        return std::unexpected(error(
+            u8io::format(u8"trailing characters after number in \"{}\"", text),
+            loc));
+    }
+    return value;
+}
+
+}  // namespace detail
+
+// Whole-string parsing with error-layer failures. Exactly as strict as
+// from_chars: no leading whitespace, no trailing anything. The base /
+// chars_format overloads mirror from_chars' trailing argument (they are
+// separate overloads because a defaulted source_location cannot follow a
+// deduced parameter pack).
+template <class T>
+[[nodiscard]] std::expected<T, error> parse(
+    std::u8string_view text,
+    std::source_location loc = std::source_location::current()) {
+    return detail::parse_impl<T>(text, loc);
+}
+
+template <class T>
+[[nodiscard]] std::expected<T, error> parse(
+    std::u8string_view text, int base,
+    std::source_location loc = std::source_location::current()) {
+    return detail::parse_impl<T>(text, loc, base);
+}
+
+template <class T>
+[[nodiscard]] std::expected<T, error> parse(
+    std::u8string_view text, std::chars_format fmt,
+    std::source_location loc = std::source_location::current()) {
+    return detail::parse_impl<T>(text, loc, fmt);
 }
 
 }  // namespace u8io
