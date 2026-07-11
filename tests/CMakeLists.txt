@@ -10,6 +10,8 @@ target_link_libraries(u8io_tests PRIVATE u8io::u8io)
 
 if(MSVC)
     target_compile_options(u8io_tests PRIVATE /W4 /permissive-)
+    # The tests use std::fopen portably; suppress MSVC's fopen_s suggestion.
+    target_compile_definitions(u8io_tests PRIVATE _CRT_SECURE_NO_WARNINGS)
 else()
     target_compile_options(u8io_tests PRIVATE -Wall -Wextra -Wpedantic)
 endif()
