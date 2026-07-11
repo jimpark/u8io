@@ -47,7 +47,8 @@ TEST_CASE("read_file rejects invalid UTF-8 unless told otherwise") {
     }
     const auto strict = u8io::read_file(path);
     CHECK(!strict.has_value());
-    CHECK(strict.error().message().find(u8"byte offset 2") != std::u8string::npos);
+    CHECK(strict.error().message().find(u8"byte offset 2") !=
+          std::u8string::npos);
 
     const auto lax = u8io::read_file(path, /*validate_utf8=*/false);
     CHECK(lax.has_value());
@@ -58,7 +59,8 @@ TEST_CASE("read_file rejects invalid UTF-8 unless told otherwise") {
 TEST_CASE("read_file reports a missing file as an error") {
     const auto missing = u8io::read_file(temp_file(u8"u8io_absent_ø.txt"));
     CHECK(!missing.has_value());
-    CHECK(missing.error().message().find(u8"cannot open") != std::u8string::npos);
+    CHECK(missing.error().message().find(u8"cannot open") !=
+          std::u8string::npos);
 }
 
 TEST_CASE("write_to sends UTF-8 bytes to an ostream") {
@@ -69,6 +71,7 @@ TEST_CASE("write_to sends UTF-8 bytes to an ostream") {
 }
 
 TEST_CASE("filesystem paths are formattable") {
-    const std::filesystem::path p = std::filesystem::path(u8"dossier/fichiér.txt");
+    const std::filesystem::path p =
+        std::filesystem::path(u8"dossier/fichiér.txt");
     CHECK(u8io::format(u8"path: {}", p) == u8"path: dossier/fichiér.txt");
 }

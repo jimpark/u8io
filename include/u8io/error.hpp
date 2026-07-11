@@ -41,7 +41,9 @@ public:
                    std::source_location loc = std::source_location::current())
         : message_(std::move(message)), code_(code), location_(loc) {}
 
-    [[nodiscard]] const std::u8string& message() const noexcept { return message_; }
+    [[nodiscard]] const std::u8string& message() const noexcept {
+        return message_;
+    }
     [[nodiscard]] std::error_code code() const noexcept { return code_; }
     [[nodiscard]] const std::source_location& location() const noexcept {
         return location_;
@@ -184,7 +186,8 @@ struct arg_mapper<error> {
 template <class T, class E>
 struct arg_mapper<std::expected<T, E>> {
     using mapped_type = detail::expected_proxy<T, E>;
-    static detail::expected_proxy<T, E> map(const std::expected<T, E>& e) noexcept {
+    static detail::expected_proxy<T, E> map(
+        const std::expected<T, E>& e) noexcept {
         return {&e};
     }
 };
@@ -217,13 +220,15 @@ struct std::formatter<u8io::detail::expected_proxy<T, E>, char> {
     constexpr auto parse(std::basic_format_parse_context<char>& ctx) {
         auto it = ctx.begin();
         if (it != ctx.end() && *it != '}') {
-            throw std::format_error("std::expected accepts no format specifier");
+            throw std::format_error(
+                "std::expected accepts no format specifier");
         }
         return it;
     }
 
     template <class FormatContext>
-    auto format(u8io::detail::expected_proxy<T, E> proxy, FormatContext& ctx) const {
+    auto format(u8io::detail::expected_proxy<T, E> proxy,
+                FormatContext& ctx) const {
         if (proxy.exp->has_value()) {
             if constexpr (std::is_void_v<T>) {
                 return ctx.out();

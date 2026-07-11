@@ -31,13 +31,14 @@ TEST_CASE("u8string arguments honor string format specs") {
 
 TEST_CASE("char-world arguments still work") {
     const std::string narrow = "narrow";
-    CHECK(u8io::format(u8"{} {} {}", narrow, "literal", std::string_view("view")) ==
-          u8"narrow literal view");
+    CHECK(u8io::format(u8"{} {} {}", narrow, "literal",
+                       std::string_view("view")) == u8"narrow literal view");
 }
 
 TEST_CASE("non-ASCII format strings") {
     CHECK(u8io::format(u8"prix: {}€", 5) == u8"prix: 5€");
-    CHECK(u8io::format(u8"日本語 {} テキスト", u8"の") == u8"日本語 の テキスト");
+    CHECK(u8io::format(u8"日本語 {} テキスト", u8"の") ==
+          u8"日本語 の テキスト");
 }
 
 TEST_CASE("a lone char8_t renders as one code unit") {
@@ -67,5 +68,6 @@ TEST_CASE("formatted_size counts UTF-8 code units") {
 
 TEST_CASE("format string location is captured") {
     const auto fmt = u8io::u8format_string<>(u8"x");
-    CHECK(std::string_view(fmt.location().file_name()).ends_with("test_format.cpp"));
+    CHECK(std::string_view(fmt.location().file_name())
+              .ends_with("test_format.cpp"));
 }

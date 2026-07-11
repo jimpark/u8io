@@ -19,7 +19,8 @@ namespace u8io {
 
 // View UTF-8 code units as chars. Always well-defined: char may alias any
 // object type.
-[[nodiscard]] inline std::string_view as_char(std::u8string_view text) noexcept {
+[[nodiscard]] inline std::string_view as_char(
+    std::u8string_view text) noexcept {
     return {reinterpret_cast<const char*>(text.data()), text.size()};
 }
 
@@ -48,8 +49,8 @@ struct decode_error {
 // Checks well-formedness per the Unicode 15 table: rejects overlong
 // encodings, surrogates (U+D800..U+DFFF), values above U+10FFFF, stray
 // continuation bytes, and truncated sequences.
-[[nodiscard]] inline std::expected<std::u8string_view, decode_error>
-validate(std::string_view bytes) noexcept {
+[[nodiscard]] inline std::expected<std::u8string_view, decode_error> validate(
+    std::string_view bytes) noexcept {
     const std::size_t n = bytes.size();
     std::size_t i = 0;
     while (i < n) {
@@ -94,8 +95,8 @@ validate(std::string_view bytes) noexcept {
     return as_u8(bytes);
 }
 
-[[nodiscard]] inline std::expected<std::u8string_view, decode_error>
-validate(std::u8string_view text) noexcept {
+[[nodiscard]] inline std::expected<std::u8string_view, decode_error> validate(
+    std::u8string_view text) noexcept {
     return validate(as_char(text));
 }
 

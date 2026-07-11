@@ -71,8 +71,8 @@ TEST_CASE("expected values format bare, errors as unexpected(...)") {
 
 TEST_CASE("expected with u8string payloads formats through the mapper") {
     const std::expected<std::u8string, std::u8string> good{u8"välue"};
-    const std::expected<std::u8string, std::u8string> bad{
-        std::unexpect, u8"öops"};
+    const std::expected<std::u8string, std::u8string> bad{std::unexpect,
+                                                          u8"öops"};
     CHECK(u8io::format(u8"{}", good) == u8"välue");
     CHECK(u8io::format(u8"{}", bad) == u8"unexpected(öops)");
 }
@@ -85,7 +85,8 @@ TEST_CASE("expected<void> formats as empty on success") {
 }
 
 TEST_CASE("from_edge adapts string errors") {
-    const std::expected<int, std::string> edge{std::unexpect, "third-party böom"};
+    const std::expected<int, std::string> edge{std::unexpect,
+                                               "third-party böom"};
     const auto adapted = u8io::from_edge(edge);
     CHECK(!adapted.has_value());
     CHECK(adapted.error().message() == u8"third-party böom");
@@ -110,9 +111,10 @@ TEST_CASE("errors stay cheap to copy through expected plumbing") {
         return u8io::fail(u8"root çause");
     };
     auto step2 = [&]() -> std::expected<std::u8string, u8io::error> {
-        return step1().and_then([](int v) -> std::expected<std::u8string, u8io::error> {
-            return u8io::format(u8"{}", v);
-        });
+        return step1().and_then(
+            [](int v) -> std::expected<std::u8string, u8io::error> {
+                return u8io::format(u8"{}", v);
+            });
     };
     const auto result = step2();
     CHECK(!result.has_value());

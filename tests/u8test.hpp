@@ -26,7 +26,9 @@ inline int& failure_count() {
 }
 
 struct registrar {
-    registrar(const char* name, void (*fn)()) { registry().push_back({name, fn}); }
+    registrar(const char* name, void (*fn)()) {
+        registry().push_back({name, fn});
+    }
 };
 
 inline void report_failure(const char* what, const char* file, int line) {
@@ -44,7 +46,8 @@ inline int run_all() {
                         e.what());
         } catch (...) {
             ++failure_count();
-            std::printf("FAILED  [%s] unexpected non-std exception\n", test.name);
+            std::printf("FAILED  [%s] unexpected non-std exception\n",
+                        test.name);
         }
     }
     std::printf("%zu test case(s), %d failure(s)\n", registry().size(),
@@ -57,34 +60,34 @@ inline int run_all() {
 #define U8TEST_CAT2(a, b) a##b
 #define U8TEST_CAT(a, b) U8TEST_CAT2(a, b)
 
-#define U8TEST_CASE_IMPL(name, id)                                     \
-    static void id();                                                  \
+#define U8TEST_CASE_IMPL(name, id)                                          \
+    static void id();                                                       \
     static const ::u8test::registrar U8TEST_CAT(id, _registrar){name, &id}; \
     static void id()
 
 #define TEST_CASE(name) \
     U8TEST_CASE_IMPL(name, U8TEST_CAT(u8test_case_, __COUNTER__))
 
-#define CHECK(...)                                                          \
-    do {                                                                    \
-        if (!(__VA_ARGS__)) {                                               \
-            ::u8test::report_failure("CHECK(" #__VA_ARGS__ ")", __FILE__,   \
-                                     __LINE__);                             \
-        }                                                                   \
+#define CHECK(...)                                                        \
+    do {                                                                  \
+        if (!(__VA_ARGS__)) {                                             \
+            ::u8test::report_failure("CHECK(" #__VA_ARGS__ ")", __FILE__, \
+                                     __LINE__);                           \
+        }                                                                 \
     } while (0)
 
-#define CHECK_THROWS_AS(expr, exception_type)                                \
-    do {                                                                     \
-        bool u8test_caught = false;                                          \
-        try {                                                                \
-            (void)(expr);                                                    \
-        } catch (const exception_type&) {                                    \
-            u8test_caught = true;                                            \
-        } catch (...) {                                                      \
-        }                                                                    \
-        if (!u8test_caught) {                                                \
-            ::u8test::report_failure(                                        \
-                "CHECK_THROWS_AS(" #expr ", " #exception_type ")", __FILE__, \
-                __LINE__);                                                   \
-        }                                                                    \
+#define CHECK_THROWS_AS(expr, exception_type)                  \
+    do {                                                       \
+        bool u8test_caught = false;                            \
+        try {                                                  \
+            (void)(expr);                                      \
+        } catch (const exception_type&) {                      \
+            u8test_caught = true;                              \
+        } catch (...) {                                        \
+        }                                                      \
+        if (!u8test_caught) {                                  \
+            ::u8test::report_failure("CHECK_THROWS_AS(" #expr  \
+                                     ", " #exception_type ")", \
+                                     __FILE__, __LINE__);      \
+        }                                                      \
     } while (0)

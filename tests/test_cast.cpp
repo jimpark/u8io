@@ -25,7 +25,8 @@ TEST_CASE("copying conversions") {
 
 TEST_CASE("validate accepts well-formed UTF-8") {
     CHECK(u8io::validate("plain ascii"sv).has_value());
-    CHECK(u8io::validate("two-byte: é, three-byte: ✓, four-byte: 🎉"sv).has_value());
+    CHECK(u8io::validate("two-byte: é, three-byte: ✓, four-byte: 🎉"sv)
+              .has_value());
     CHECK(u8io::validate(""sv).has_value());
     CHECK(u8io::validate(u8"écrit en UTF-8"sv).has_value());
     // Highest scalar value U+10FFFF: F4 8F BF BF.

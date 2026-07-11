@@ -103,7 +103,8 @@ struct runtime_u8format {
     std::u8string_view str;
 };
 
-[[nodiscard]] inline runtime_u8format runtime_format(std::u8string_view fmt) noexcept {
+[[nodiscard]] inline runtime_u8format runtime_format(
+    std::u8string_view fmt) noexcept {
     return {fmt};
 }
 
@@ -135,8 +136,12 @@ public:
         std::source_location loc = std::source_location::current()) noexcept
         : str_(fmt.str), loc_(loc) {}
 
-    [[nodiscard]] constexpr std::u8string_view get() const noexcept { return str_; }
-    [[nodiscard]] constexpr std::source_location location() const noexcept { return loc_; }
+    [[nodiscard]] constexpr std::u8string_view get() const noexcept {
+        return str_;
+    }
+    [[nodiscard]] constexpr std::source_location location() const noexcept {
+        return loc_;
+    }
 
 private:
     std::u8string_view str_;
@@ -159,13 +164,15 @@ template <class... M>
 
 template <class Out, class... M>
 Out vformat_to_mapped(Out out, std::string_view fmt, M&&... mapped) {
-    return std::vformat_to(std::move(out), fmt, std::make_format_args(mapped...));
+    return std::vformat_to(std::move(out), fmt,
+                           std::make_format_args(mapped...));
 }
 
 }  // namespace detail
 
 template <class... Args>
-[[nodiscard]] std::u8string format(u8format_string<Args...> fmt, Args&&... args) {
+[[nodiscard]] std::u8string format(u8format_string<Args...> fmt,
+                                   Args&&... args) {
     return to_u8string(detail::vformat_mapped(
         as_char(fmt.get()), detail::map_arg(std::forward<Args>(args))...));
 }
@@ -180,9 +187,10 @@ Out format_to(Out out, u8format_string<Args...> fmt, Args&&... args) {
 }
 
 template <class... Args>
-[[nodiscard]] std::size_t formatted_size(u8format_string<Args...> fmt, Args&&... args) {
-    return detail::vformat_mapped(
-               as_char(fmt.get()), detail::map_arg(std::forward<Args>(args))...)
+[[nodiscard]] std::size_t formatted_size(u8format_string<Args...> fmt,
+                                         Args&&... args) {
+    return detail::vformat_mapped(as_char(fmt.get()),
+                                  detail::map_arg(std::forward<Args>(args))...)
         .size();
 }
 

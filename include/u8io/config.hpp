@@ -18,7 +18,8 @@
 #error "u8io requires C++23 <format>"
 #endif
 #ifndef __cpp_lib_expected
-#error "u8io requires C++23 <expected> (note: libstdc++ disables <expected> for Clang < 19)"
+#error \
+    "u8io requires C++23 <expected> (note: libstdc++ disables <expected> for Clang < 19)"
 #endif
 
 namespace u8io::detail {
