@@ -102,6 +102,18 @@ To make your own type formattable through `u8io::format`, specialize
 cmake -B build && cmake --build build && ctest --test-dir build
 ```
 
+With [just](https://github.com/casey/just) installed, the common chores are
+one word each:
+
+```sh
+just test               # configure, build, and run the tests
+just format             # clang-format all headers and sources in-place
+just install [prefix]   # install headers + CMake package (find_package(u8io))
+```
+
+`just` alone lists the recipes; `builddir` and `config` can be overridden,
+e.g. `just config=Release test`.
+
 ## Known limitations
 
 - A lone `char8_t` argument formats as a single code unit (byte), which is
