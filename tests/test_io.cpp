@@ -14,6 +14,18 @@ std::filesystem::path temp_file(std::u8string_view name) {
 
 }  // namespace
 
+TEST_CASE("std::filesystem::path formats directly, including non-ASCII") {
+    const std::filesystem::path p =
+        std::filesystem::path(u8"docs") / std::filesystem::path(u8"日誌.txt");
+    const std::u8string formatted = u8io::format(u8"log at {}", p);
+    CHECK(formatted.starts_with(u8"log at docs"));
+    CHECK(formatted.ends_with(u8"日誌.txt"));  // separator is
+                                               // platform-specific
+    // String specs apply to the mapped text.
+    CHECK(u8io::format(u8"[{:>7}]", std::filesystem::path(u8"a.txt")) ==
+          u8"[  a.txt]");
+}
+
 TEST_CASE("write_file / read_file round-trip with a non-ASCII filename") {
     const auto path = temp_file(u8"u8io_tßt_ファイル.txt");
     const std::u8string text = u8"line one\nligne dëux ✓\n";

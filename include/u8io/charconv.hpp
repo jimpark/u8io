@@ -8,6 +8,10 @@
 // Not constexpr: the char8_t* <-> char* reinterpret_cast is not permitted
 // in constant evaluation. Use std::to_chars with char buffers if you need
 // compile-time conversion.
+//
+// Capabilities exactly track the underlying standard library. Notably,
+// libc++ before 20 has no floating-point from_chars (the overloads are
+// declared deleted); check __cpp_lib_to_chars if you need it portably.
 
 #include <charconv>
 #include <string_view>

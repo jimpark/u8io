@@ -48,10 +48,15 @@ TEST_CASE("from_chars from a u8string_view") {
     CHECK(rh.ec == std::errc{});
     CHECK(hex == 0xDEADBEEFu);
 
+    // libc++ before 20 declares floating-point from_chars deleted (and
+    // leaves __cpp_lib_to_chars undefined); the integer overloads above
+    // work everywhere.
+#ifdef __cpp_lib_to_chars
     double d = 0;
     const auto rd = u8io::from_chars(u8"6.25e-2"sv, d);
     CHECK(rd.ec == std::errc{});
     CHECK(d == 0.0625);
+#endif
 }
 
 TEST_CASE("from_chars failure modes") {
