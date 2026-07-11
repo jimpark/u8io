@@ -9,6 +9,7 @@
 // boundaries where the bytes come from an untrusted source.
 
 #include <cstddef>
+#include <cstdint>
 #include <expected>
 #include <string>
 #include <string_view>
@@ -46,58 +47,86 @@ struct decode_error {
     std::size_t offset = 0;
 };
 
-// Checks well-formedness per the Unicode 15 table: rejects overlong
-// encodings, surrogates (U+D800..U+DFFF), values above U+10FFFF, stray
-// continuation bytes, and truncated sequences.
-[[nodiscard]] inline std::expected<std::u8string_view, decode_error> validate(
-    std::string_view bytes) noexcept {
-    const std::size_t n = bytes.size();
-    std::size_t i = 0;
-    while (i < n) {
-        const auto b0 = static_cast<unsigned char>(bytes[i]);
-        if (b0 < 0x80) {
-            ++i;
-            continue;
-        }
-        std::size_t len = 0;
-        unsigned char lo = 0x80;
-        unsigned char hi = 0xBF;
-        if (b0 >= 0xC2 && b0 <= 0xDF) {
-            len = 2;
-        } else if (b0 == 0xE0) {
-            len = 3;
-            lo = 0xA0;  // reject overlong 3-byte forms
-        } else if ((b0 >= 0xE1 && b0 <= 0xEC) || b0 == 0xEE || b0 == 0xEF) {
-            len = 3;
-        } else if (b0 == 0xED) {
-            len = 3;
-            hi = 0x9F;  // reject surrogates
-        } else if (b0 == 0xF0) {
-            len = 4;
-            lo = 0x90;  // reject overlong 4-byte forms
-        } else if (b0 >= 0xF1 && b0 <= 0xF3) {
-            len = 4;
-        } else if (b0 == 0xF4) {
-            len = 4;
-            hi = 0x8F;  // reject values above U+10FFFF
-        } else {
-            return std::unexpected(decode_error{i});
-        }
-        if (n - i < len) return std::unexpected(decode_error{i});
-        const auto b1 = static_cast<unsigned char>(bytes[i + 1]);
-        if (b1 < lo || b1 > hi) return std::unexpected(decode_error{i});
-        for (std::size_t k = 2; k < len; ++k) {
-            const auto bk = static_cast<unsigned char>(bytes[i + k]);
-            if (bk < 0x80 || bk > 0xBF) return std::unexpected(decode_error{i});
-        }
-        i += len;
+namespace detail {
+
+struct decode_result {
+    char32_t code_point;  // U+FFFD when !ok
+    std::uint8_t size;    // bytes consumed, >= 1
+    bool ok;
+};
+
+// Decodes one scalar value per the Unicode 15 well-formedness table:
+// rejects overlong encodings, surrogates (U+D800..U+DFFF), values above
+// U+10FFFF, stray continuation bytes, and truncated sequences. Requires
+// pos != end. On malformed input, yields U+FFFD and consumes the maximal
+// subpart of the ill-formed sequence (Unicode's recommended substitution),
+// so a decoding loop always makes progress and never resynchronizes inside
+// a following well-formed sequence.
+constexpr decode_result decode_one(const char8_t* pos,
+                                   const char8_t* end) noexcept {
+    const auto b0 = static_cast<unsigned char>(*pos);
+    if (b0 < 0x80) return {b0, 1, true};
+    std::uint8_t len = 0;
+    unsigned char lo = 0x80;
+    unsigned char hi = 0xBF;
+    char32_t cp = 0;
+    if (b0 >= 0xC2 && b0 <= 0xDF) {
+        len = 2;
+        cp = b0 & 0x1F;
+    } else if (b0 == 0xE0) {
+        len = 3;
+        lo = 0xA0;  // reject overlong 3-byte forms
+    } else if ((b0 >= 0xE1 && b0 <= 0xEC) || b0 == 0xEE || b0 == 0xEF) {
+        len = 3;
+        cp = b0 & 0x0F;
+    } else if (b0 == 0xED) {
+        len = 3;
+        hi = 0x9F;  // reject surrogates
+        cp = 0x0D;
+    } else if (b0 == 0xF0) {
+        len = 4;
+        lo = 0x90;  // reject overlong 4-byte forms
+    } else if (b0 >= 0xF1 && b0 <= 0xF3) {
+        len = 4;
+        cp = b0 & 0x07;
+    } else if (b0 == 0xF4) {
+        len = 4;
+        hi = 0x8F;  // reject values above U+10FFFF
+        cp = 4;
+    } else {
+        return {U'�', 1, false};
     }
-    return as_u8(bytes);
+    std::uint8_t have = 1;
+    for (; have < len && pos + have != end; ++have) {
+        const auto b = static_cast<unsigned char>(pos[have]);
+        if (b < (have == 1 ? lo : 0x80) || b > (have == 1 ? hi : 0xBF)) break;
+        cp = (cp << 6) | (b & 0x3F);
+    }
+    if (have < len) return {U'�', have, false};
+    return {cp, len, true};
+}
+
+}  // namespace detail
+
+// Checks well-formedness; see detail::decode_one for the exact rules.
+[[nodiscard]] inline std::expected<std::u8string_view, decode_error> validate(
+    std::u8string_view text) noexcept {
+    const char8_t* pos = text.data();
+    const char8_t* const end = pos + text.size();
+    while (pos != end) {
+        const auto r = detail::decode_one(pos, end);
+        if (!r.ok) {
+            return std::unexpected(
+                decode_error{static_cast<std::size_t>(pos - text.data())});
+        }
+        pos += r.size;
+    }
+    return text;
 }
 
 [[nodiscard]] inline std::expected<std::u8string_view, decode_error> validate(
-    std::u8string_view text) noexcept {
-    return validate(as_char(text));
+    std::string_view bytes) noexcept {
+    return validate(as_u8(bytes));
 }
 
 }  // namespace u8io

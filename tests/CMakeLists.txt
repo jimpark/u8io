@@ -4,7 +4,11 @@ add_executable(u8io_tests
     test_format.cpp
     test_error.cpp
     test_print.cpp
-    test_io.cpp)
+    test_io.cpp
+    test_ascii.cpp
+    test_charconv.cpp
+    test_hash.cpp
+    test_text.cpp)
 
 target_link_libraries(u8io_tests PRIVATE u8io::u8io)
 

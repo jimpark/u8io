@@ -65,6 +65,10 @@ re-runs the standard library's own checker against the mapped argument types.
 | `u8io/print.hpp` | `print`, `println` to `stdout` or any `FILE*`, via `std::vprint_unicode` when available |
 | `u8io/error.hpp` | `error` (message + `source_location` + `error_code` + cause chain), `fail`, `fail_with`, `u8unexpected`, `from_edge`, `from_error_code`, formatting for `error` and `std::expected` |
 | `u8io/io.hpp` | `write_to(ostream, …)`, `read_file`, `write_file`, formattable `std::filesystem::path` |
+| `u8io/text.hpp` | `code_points(u8string_view)` — a forward range of `char32_t` scalar values (ill-formed input yields U+FFFD) |
+| `u8io/ascii.hpp` | `constexpr`, locale-free ASCII classification and case conversion for `char8_t` (`is_alpha`, `is_digit`, `to_lower`, …) |
+| `u8io/charconv.hpp` | `to_chars` / `from_chars` for `char8_t*` buffers and `u8string_view` input |
+| `u8io/hash.hpp` | `string_hash` (transparent), `u8string_map<T>`, `u8string_set` — heterogeneous lookup without temporary keys |
 
 Formatting accepts `u8string`, `u8string_view`, `u8` literals, and lone
 `char8_t` alongside all ordinary `std::format` argument types; string format
@@ -85,6 +89,12 @@ To make your own type formattable through `u8io::format`, specialize
   `std::expected<T, std::string>` / `std::error_code` returns.
 - **`std::filesystem::path`:** construct from `u8string` and read back with
   `.u8string()` — already lossless in the standard; `u8io` adds formatting.
+- **Regex:** `u8io` deliberately does not wrap `<regex>`. Byte-level
+  `std::regex` gives wrong answers on non-ASCII text for anything beyond
+  literal patterns (`.`, character classes, and case-insensitivity operate
+  on code units), and its performance is poor. For ASCII-literal patterns,
+  `u8io::as_char()` the input; for real Unicode matching, use RE2, PCRE2
+  (`PCRE2_UTF`), or ICU.
 
 ## Building the tests
 
@@ -99,7 +109,11 @@ cmake -B build && cmake --build build && ctest --test-dir build
 - `error_code::message()` text is used as-is; with non-English system locales
   on Windows it may not be UTF-8 (standard categories emit ASCII).
 - No grapheme/normalization/width awareness — that is ICU's job. Format
-  width/precision count code units, exactly as `std::format` does for `char`.
+  width/precision count code units, exactly as `std::format` does for `char`;
+  `code_points()` yields scalar values, which are still not user-perceived
+  characters.
+- `ascii::` classification and case conversion are ASCII-only by design;
+  non-ASCII bytes are in no class and case-convert to themselves.
 
 ## License
 
