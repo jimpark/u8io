@@ -84,6 +84,16 @@ To make your own type formattable through `u8io::format`, specialize
 
 - **iostreams:** C++20 deleted `operator<<` for `char8_t` on purpose. Write
   `os << u8io::as_char(text)` or `u8io::write_to(os, text)`.
+- **`std::u8fstream`:** `u8io` deliberately provides no stream drop-ins.
+  The standard left `basic_fstream<char8_t>` unusable on purpose — no
+  standard locale supplies a `codecvt<char8_t, char, mbstate_t>` facet, so
+  a real replacement means reimplementing `filebuf` and the stream layer,
+  and inheriting the failbit/badbit error model that `u8io`'s
+  `std::expected`-based errors exist to avoid. The committee's own direction
+  for new code is `std::print`/`std::println` (C++23) and `std::scan`
+  (P1729), not streams. Use `read_file`/`write_file` for whole files,
+  `u8io::print` to a `FILE*` for incremental output, and `write_to` when an
+  API hands you an `ostream`.
 - **Third-party APIs taking/returning `std::string`:** `as_char`/`to_string`
   outbound, `to_u8string`/`validate` inbound, `from_edge` for
   `std::expected<T, std::string>` / `std::error_code` returns.
