@@ -64,8 +64,9 @@ re-runs the standard library's own checker against the mapped argument types.
 | `u8io/format.hpp` | `format`, `format_to`, `formatted_size`, `runtime_format`, the `arg_mapper` extension point |
 | `u8io/print.hpp` | `print`, `println` to `stdout` or any `FILE*`, via `std::vprint_unicode` when available |
 | `u8io/error.hpp` | `error` (message + `source_location` + `error_code` + cause chain), `fail`, `fail_with`, `u8unexpected`, `from_edge`, `from_error_code`, formatting for `error` and `std::expected` |
-| `u8io/io.hpp` | `write_to(ostream, …)`, `read_file`, `write_file`, formattable `std::filesystem::path` |
+| `u8io/io.hpp` | `write_to(ostream, …)`, `read_file`, `write_file`, `read_line` (console-aware on Windows), formattable `std::filesystem::path` |
 | `u8io/text.hpp` | `code_points(u8string_view)` — a forward range of `char32_t` scalar values (ill-formed input yields U+FFFD) |
+| `u8io/transcode.hpp` | UTF-8 ↔ UTF-16/UTF-32: `to_u16string`, `to_u32string`, `to_u8string` — strict (`expected<…, decode_error>`) and `_lossy` (U+FFFD) flavors; `encode(char32_t)`/`append` for single code points; on Windows `to_wstring`, `as_wide`/`as_u16` |
 | `u8io/ascii.hpp` | `constexpr`, locale-free ASCII classification and case conversion for `char8_t` (`is_alpha`, `is_digit`, `to_lower`, …) |
 | `u8io/charconv.hpp` | `to_chars` / `from_chars` for `char8_t*` buffers and `u8string_view` input; `parse<T>` → `expected<T, error>` for whole-string numbers |
 | `u8io/hash.hpp` | `string_hash` (transparent), `u8string_map<T>`, `u8string_set` — heterogeneous lookup without temporary keys |
@@ -92,8 +93,19 @@ To make your own type formattable through `u8io::format`, specialize
   `std::expected`-based errors exist to avoid. The committee's own direction
   for new code is `std::print`/`std::println` (C++23) and `std::scan`
   (P1729), not streams. Use `read_file`/`write_file` for whole files,
-  `u8io::print` to a `FILE*` for incremental output, and `write_to` when an
-  API hands you an `ostream`.
+  `read_line` for line input, `u8io::print` to a `FILE*` for incremental
+  output, and `write_to` when an API hands you an `ostream`.
+- **The Windows API boundary (`wchar_t`):** Win32 W-functions speak UTF-16.
+  `to_wstring(text)` outbound, `to_u8string(wide)` inbound — strict variants
+  return `expected` and report the offset of the first ill-formed sequence,
+  `_lossy` variants substitute U+FFFD and always succeed. `as_wide`/`as_u16`
+  reinterpret between `wchar_t` and `char16_t` views for free. All of it is
+  locale-free, deterministic, and needs no `<windows.h>`.
+- **`stdin`:** `u8io::read_line()` reads one line as UTF-8. On Windows, real
+  console input is read natively via `ReadConsoleW` and transcoded — the
+  input-side counterpart of `std::print`'s Unicode console path — so typed
+  text arrives as UTF-8 regardless of the console code page. Redirected
+  input is read as raw bytes and validated by default, like `read_file`.
 - **Third-party APIs taking/returning `std::string`:** `as_char`/`to_string`
   outbound, `to_u8string`/`validate` inbound, `from_edge` for
   `std::expected<T, std::string>` / `std::error_code` returns.
@@ -136,6 +148,9 @@ e.g. `just config=Release test`.
   characters.
 - `ascii::` classification and case conversion are ASCII-only by design;
   non-ASCII bytes are in no class and case-convert to themselves.
+- `read_line`'s Windows console path transcodes lossily (unpaired UTF-16
+  surrogates become U+FFFD) and treats Ctrl-Z at the start of a line as end
+  of input, matching console conventions.
 
 ## License
 

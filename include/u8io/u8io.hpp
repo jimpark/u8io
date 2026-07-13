@@ -4,13 +4,14 @@
 // individual headers can be included separately, but formatting a type whose
 // mapper lives in a header you did not include is a compile error.
 
-#include "ascii.hpp"     // IWYU pragma: export
-#include "cast.hpp"      // IWYU pragma: export
-#include "charconv.hpp"  // IWYU pragma: export
-#include "config.hpp"    // IWYU pragma: export
-#include "error.hpp"     // IWYU pragma: export
-#include "format.hpp"    // IWYU pragma: export
-#include "hash.hpp"      // IWYU pragma: export
-#include "io.hpp"        // IWYU pragma: export
-#include "print.hpp"     // IWYU pragma: export
-#include "text.hpp"      // IWYU pragma: export
+#include "ascii.hpp"      // IWYU pragma: export
+#include "cast.hpp"       // IWYU pragma: export
+#include "charconv.hpp"   // IWYU pragma: export
+#include "config.hpp"     // IWYU pragma: export
+#include "error.hpp"      // IWYU pragma: export
+#include "format.hpp"     // IWYU pragma: export
+#include "hash.hpp"       // IWYU pragma: export
+#include "io.hpp"         // IWYU pragma: export
+#include "print.hpp"      // IWYU pragma: export
+#include "text.hpp"       // IWYU pragma: export
+#include "transcode.hpp"  // IWYU pragma: export

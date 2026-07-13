@@ -43,7 +43,8 @@ namespace u8io {
 }
 
 struct decode_error {
-    // Byte offset of the first invalid UTF-8 sequence.
+    // Offset of the first invalid sequence, in the source's code units
+    // (bytes for UTF-8; char16_t/char32_t units for transcode.hpp sources).
     std::size_t offset = 0;
 };
 

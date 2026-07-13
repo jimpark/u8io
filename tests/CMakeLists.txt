@@ -8,7 +8,8 @@ add_executable(u8io_tests
     test_ascii.cpp
     test_charconv.cpp
     test_hash.cpp
-    test_text.cpp)
+    test_text.cpp
+    test_transcode.cpp)
 
 target_link_libraries(u8io_tests PRIVATE u8io::u8io)
 
