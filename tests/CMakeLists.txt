@@ -9,7 +9,10 @@ add_executable(u8io_tests
     test_charconv.cpp
     test_hash.cpp
     test_text.cpp
-    test_transcode.cpp)
+    test_transcode.cpp
+    # Empty translation units off Windows; see the files for what they assert.
+    test_windows_headers.cpp
+    test_windows_headers_reverse.cpp)
 
 target_link_libraries(u8io_tests PRIVATE u8io::u8io)
 

@@ -23,6 +23,15 @@
 
 #if defined(_WIN32)
 #include <io.h>  // _isatty, _get_osfhandle
+
+// ReadConsoleW's last parameter is PCONSOLE_READCONSOLE_CONTROL, not void*.
+// Under C language linkage the parameter types must match <windows.h>'s
+// declaration exactly, or a TU including both headers gets C2116/C2733. The
+// tag must be declared at global scope, where <windows.h> declares it: naming
+// it inside a namespace would introduce a distinct type and mismatch anyway.
+// Redeclaring an incomplete type <windows.h> may already have completed is
+// harmless, in either include order.
+struct _CONSOLE_READCONSOLE_CONTROL;
 #endif
 
 namespace u8io {
@@ -37,10 +46,10 @@ namespace detail::win32 {
 extern "C" {
 __declspec(dllimport) int __stdcall GetConsoleMode(void* handle,
                                                    unsigned long* mode);
-__declspec(dllimport) int __stdcall ReadConsoleW(void* handle, void* buffer,
-                                                 unsigned long chars_to_read,
-                                                 unsigned long* chars_read,
-                                                 void* input_control);
+__declspec(dllimport) int __stdcall
+ReadConsoleW(void* handle, void* buffer, unsigned long chars_to_read,
+             unsigned long* chars_read,
+             ::_CONSOLE_READCONSOLE_CONTROL* input_control);
 __declspec(dllimport) unsigned long __stdcall GetLastError();
 }
 

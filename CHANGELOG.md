@@ -9,6 +9,12 @@ versions.
 
 ## [Unreleased]
 
+### Fixed
+- `io.hpp` — the private `ReadConsoleW` declaration typed its last parameter
+  as `void*` instead of `PCONSOLE_READCONSOLE_CONTROL`, so a translation unit
+  including both `<windows.h>` and `u8io/io.hpp` failed to compile with C2116
+  and C2733 (C-linkage signature mismatch).
+
 ## [0.1.0] - 2026-07-20
 
 First release. A header-only C++23 library for using `std::u8string` as the
