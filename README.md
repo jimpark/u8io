@@ -152,6 +152,12 @@ e.g. `just config=Release test`.
   surrogates become U+FFFD) and treats Ctrl-Z at the start of a line as end
   of input, matching console conventions.
 
+## Versioning
+
+Release history is in [CHANGELOG.md](CHANGELOG.md). u8io follows
+[Semantic Versioning](https://semver.org); while the version is below 1.0.0
+the public API may change between minor versions.
+
 ## License
 
 [MIT](LICENSE).
