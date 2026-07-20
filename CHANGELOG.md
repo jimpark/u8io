@@ -9,6 +9,8 @@ versions.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-07-20
+
 ### Fixed
 - `io.hpp` — the private `ReadConsoleW` declaration typed its last parameter
   as `void*` instead of `PCONSOLE_READCONSOLE_CONTROL`, so a translation unit
@@ -51,5 +53,6 @@ handling — with adapters for the `std::string`, `wchar_t`, and iostream edges.
 - The ordinary literal encoding must be UTF-8 (enforced by `static_assert`;
   `/utf-8` added automatically for MSVC consumers).
 
-[Unreleased]: https://github.com/jimpark/u8io/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/jimpark/u8io/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/jimpark/u8io/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/jimpark/u8io/releases/tag/v0.1.0

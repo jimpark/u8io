@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(u8io VERSION 0.1.0 LANGUAGES CXX)
+project(u8io VERSION 0.1.1 LANGUAGES CXX)
 
 include(GNUInstallDirs)
 
